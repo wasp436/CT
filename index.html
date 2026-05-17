@@ -1,1109 +1,477 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="theme-color" content="#0a0e14" />
-    <title>水塔監控</title>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap");
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e14">
+<title>水塔監控</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
 
-      :root {
-        --bg: #0a0e14;
-        --panel: #131920;
-        --panel2: #1a2230;
-        --border: #1e2d3d;
-        --accent: #00c8f0;
-        --green: #00e890;
-        --warn: #f0a500;
-        --danger: #f04040;
-        --text: #dde8f0;
-        --muted: #5a7a90;
-        --mono: "DM Mono", monospace;
-        --sans: "Noto Sans TC", sans-serif;
-        --radius: 14px;
-        --safe-bottom: env(safe-area-inset-bottom, 0px);
-      }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        -webkit-tap-highlight-color: transparent;
-      }
-      html {
-        font-size: 16px;
-      }
-      body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: var(--sans);
-        min-height: 100vh;
-        min-height: 100dvh;
-        overflow-x: hidden;
-      }
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background:
-          radial-gradient(
-            ellipse 80% 50% at 50% -10%,
-            rgba(0, 200, 240, 0.08),
-            transparent
-          ),
-          radial-gradient(
-            ellipse 60% 40% at 80% 100%,
-            rgba(0, 232, 144, 0.05),
-            transparent
-          );
-        pointer-events: none;
-        z-index: 0;
-      }
-      .app {
-        max-width: 480px;
-        margin: 0 auto;
-        padding: 16px 14px calc(24px + var(--safe-bottom));
-        position: relative;
-        z-index: 1;
-      }
+:root {
+  --bg:#0a0e14; --panel:#131920; --panel2:#1a2230; --border:#1e2d3d;
+  --accent:#00c8f0; --green:#00e890; --warn:#f0a500; --danger:#f04040;
+  --text:#dde8f0; --muted:#5a7a90;
+  --mono:'DM Mono',monospace; --sans:'Noto Sans TC',sans-serif;
+  --radius:14px; --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;min-height:100dvh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,200,240,.08),transparent),
+             radial-gradient(ellipse 60% 40% at 80% 100%,rgba(0,232,144,.05),transparent);
+  pointer-events:none;z-index:0}
+.app{max-width:480px;margin:0 auto;padding:16px 14px calc(24px + var(--safe-bottom));position:relative;z-index:1}
 
-      header {
-        text-align: center;
-        padding: 20px 0 18px;
-      }
-      .header-icon {
-        font-size: 2.2rem;
-        display: block;
-        margin-bottom: 6px;
-        filter: drop-shadow(0 0 16px rgba(0, 200, 240, 0.5));
-      }
-      header h1 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--accent);
-        letter-spacing: 0.04em;
-      }
-      header p {
-        font-size: 0.72rem;
-        color: var(--muted);
-        font-family: var(--mono);
-        margin-top: 4px;
-      }
+header{text-align:center;padding:20px 0 18px}
+.header-icon{font-size:2.2rem;display:block;margin-bottom:6px;filter:drop-shadow(0 0 16px rgba(0,200,240,.5))}
+header h1{font-size:1.25rem;font-weight:700;color:var(--accent);letter-spacing:.04em}
+header p{font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-top:4px}
 
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 16px;
-        margin-bottom: 12px;
-        position: relative;
-        overflow: hidden;
-      }
-      .card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(0, 200, 240, 0.3),
-          transparent
-        );
-      }
-      .card-title {
-        font-size: 0.7rem;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .card-title::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: var(--border);
-      }
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,200,240,.3),transparent)}
+.card-title{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;
+  margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border)}
 
-      .btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-        padding: 15px 20px;
-        border: none;
-        border-radius: 12px;
-        font-family: var(--sans);
-        font-size: 0.95rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition:
-          transform 0.12s,
-          opacity 0.15s;
-        -webkit-touch-callout: none;
-        user-select: none;
-      }
-      .btn:active {
-        transform: scale(0.97);
-        opacity: 0.85;
-      }
-      .btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .btn-primary {
-        background: var(--accent);
-        color: #000;
-      }
-      .btn-gps {
-        background: linear-gradient(135deg, #00c853, #00e890);
-        color: #000;
-        margin-bottom: 10px;
-      }
-      .btn-calc {
-        background: linear-gradient(135deg, var(--accent), #0090c8);
-        color: #000;
-        flex: 1;
-      }
-      .btn-clear {
-        background: var(--panel2);
-        color: var(--muted);
-        border: 1px solid var(--border);
-        flex: 0 0 80px;
-      }
-      .btn-row {
-        display: flex;
-        gap: 10px;
-        margin-top: 14px;
-      }
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  padding:15px 20px;border:none;border-radius:12px;font-family:var(--sans);
+  font-size:.95rem;font-weight:700;cursor:pointer;transition:transform .12s,opacity .15s;
+  -webkit-touch-callout:none;user-select:none}
+.btn:active{transform:scale(.97);opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#000}
+.btn-gps{background:linear-gradient(135deg,#00c853,#00e890);color:#000;margin-bottom:10px}
+.btn-calc{background:linear-gradient(135deg,var(--accent),#0090c8);color:#000;flex:1}
+.btn-clear{background:var(--panel2);color:var(--muted);border:1px solid var(--border);flex:0 0 80px}
+.btn-row{display:flex;gap:10px;margin-top:14px}
 
-      .search-wrap {
-        display: flex;
-        gap: 8px;
-        align-items: stretch;
-      }
-      .search-wrap input {
-        flex: 1;
-      }
-      .search-wrap .btn {
-        width: auto;
-        padding: 14px 18px;
-        flex-shrink: 0;
-        border-radius: 10px;
-        font-size: 0.88rem;
-      }
+.search-wrap{display:flex;gap:8px;align-items:stretch}
+.search-wrap input{flex:1}
+.search-wrap .btn{width:auto;padding:14px 18px;flex-shrink:0;border-radius:10px;font-size:.88rem}
 
-      .ig {
-        margin-bottom: 12px;
-      }
-      .ig:last-child {
-        margin-bottom: 0;
-      }
-      .ig label {
-        display: block;
-        font-size: 0.72rem;
-        color: var(--muted);
-        margin-bottom: 6px;
-        letter-spacing: 0.04em;
-      }
-      .ig.hl label {
-        color: var(--warn);
-      }
+.ig{margin-bottom:12px}
+.ig:last-child{margin-bottom:0}
+.ig label{display:block;font-size:.72rem;color:var(--muted);margin-bottom:6px;letter-spacing:.04em}
+.ig.hl label{color:var(--warn)}
 
-      input,
-      select {
-        width: 100%;
-        background: var(--panel2);
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        color: var(--text);
-        font-family: var(--sans);
-        font-size: 1rem;
-        padding: 13px 14px;
-        outline: none;
-        transition: border-color 0.2s;
-        -webkit-appearance: none;
-      }
-      input:focus,
-      select:focus {
-        border-color: var(--accent);
-      }
-      .ig.hl input {
-        border-color: rgba(240, 165, 0, 0.35);
-      }
-      input[type="number"] {
-        font-family: var(--mono);
-        font-size: 1.05rem;
-      }
-      select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a7a90' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 14px center;
-        padding-right: 36px;
-      }
-      select option {
-        background: var(--panel);
-      }
+input,select{width:100%;background:var(--panel2);border:1.5px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:var(--sans);font-size:1rem;padding:13px 14px;
+  outline:none;transition:border-color .2s;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--accent)}
+.ig.hl input{border-color:rgba(240,165,0,.35)}
+input[type=number]{font-family:var(--mono);font-size:1.05rem}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a7a90' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+select option{background:var(--panel)}
 
-      .msg {
-        font-size: 0.76rem;
-        font-family: var(--mono);
-        margin-top: 10px;
-        min-height: 18px;
-        line-height: 1.6;
-      }
-      .msg.err {
-        color: var(--danger);
-      }
-      .msg.ok {
-        color: var(--green);
-      }
-      .msg.warn {
-        color: var(--warn);
-      }
+.msg{font-size:.76rem;font-family:var(--mono);margin-top:10px;min-height:18px;line-height:1.6}
+.msg.err{color:var(--danger)}.msg.ok{color:var(--green)}.msg.warn{color:var(--warn)}
 
-      .obs-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-top: 14px;
-      }
-      .obs-item {
-        background: var(--panel2);
-        border-radius: 10px;
-        padding: 10px 12px;
-      }
-      .obs-item .lbl {
-        font-size: 0.68rem;
-        color: var(--muted);
-        margin-bottom: 3px;
-      }
-      .obs-item .v {
-        font-family: var(--mono);
-        font-size: 1.05rem;
-        color: var(--text);
-      }
-      .obs-item.wide {
-        grid-column: 1/-1;
-      }
+.obs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.obs-item{background:var(--panel2);border-radius:10px;padding:10px 12px}
+.obs-item .lbl{font-size:.68rem;color:var(--muted);margin-bottom:3px}
+.obs-item .v{font-family:var(--mono);font-size:1.05rem;color:var(--text)}
+.obs-item.wide{grid-column:1/-1}
 
-      .results {
-        display: none;
-      }
-      .results.show {
-        display: block;
-      }
-      .result-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-      .rc {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 14px;
-        position: relative;
-        overflow: hidden;
-      }
-      .rc::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2.5px;
-        background: var(--accent);
-      }
-      .rc.g::after {
-        background: var(--green);
-      }
-      .rc.w::after {
-        background: var(--warn);
-      }
-      .rc.d::after {
-        background: var(--danger);
-      }
-      .rc .rl {
-        font-size: 0.65rem;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        margin-bottom: 6px;
-      }
-      .rc .rv {
-        font-family: var(--mono);
-        font-size: 1.6rem;
-        font-weight: 500;
-        color: var(--accent);
-        line-height: 1;
-      }
-      .rc.g .rv {
-        color: var(--green);
-      }
-      .rc.w .rv {
-        color: var(--warn);
-      }
-      .rc.d .rv {
-        color: var(--danger);
-      }
-      .rc .rs {
-        font-size: 0.65rem;
-        color: var(--muted);
-        margin-top: 5px;
-      }
+.results{display:none}.results.show{display:block}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.rc{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px;position:relative;overflow:hidden}
+.rc::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;background:var(--accent)}
+.rc.g::after{background:var(--green)}.rc.w::after{background:var(--warn)}.rc.d::after{background:var(--danger)}
+.rc .rl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.rc .rv{font-family:var(--mono);font-size:1.6rem;font-weight:500;color:var(--accent);line-height:1}
+.rc.g .rv{color:var(--green)}.rc.w .rv{color:var(--warn)}.rc.d .rv{color:var(--danger)}
+.rc .rs{font-size:.65rem;color:var(--muted);margin-top:5px}
 
-      .sbox {
-        border-radius: var(--radius);
-        padding: 16px;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        border: 1px solid;
-      }
-      .sbox.n {
-        background: rgba(0, 232, 144, 0.07);
-        border-color: rgba(0, 232, 144, 0.25);
-      }
-      .sbox.w {
-        background: rgba(240, 165, 0, 0.07);
-        border-color: rgba(240, 165, 0, 0.25);
-      }
-      .sbox.d {
-        background: rgba(240, 64, 64, 0.07);
-        border-color: rgba(240, 64, 64, 0.25);
-      }
-      .si {
-        font-size: 1.6rem;
-        flex-shrink: 0;
-        line-height: 1;
-      }
-      .st h3 {
-        font-size: 0.95rem;
-        font-weight: 700;
-        margin-bottom: 4px;
-      }
-      .sbox.n .st h3 {
-        color: var(--green);
-      }
-      .sbox.w .st h3 {
-        color: var(--warn);
-      }
-      .sbox.d .st h3 {
-        color: var(--danger);
-      }
-      .st p {
-        font-size: 0.78rem;
-        color: var(--muted);
-        line-height: 1.6;
-      }
+.sbox{border-radius:var(--radius);padding:16px;margin-bottom:10px;
+  display:flex;align-items:flex-start;gap:12px;border:1px solid}
+.sbox.n{background:rgba(0,232,144,.07);border-color:rgba(0,232,144,.25)}
+.sbox.w{background:rgba(240,165,0,.07);border-color:rgba(240,165,0,.25)}
+.sbox.d{background:rgba(240,64,64,.07);border-color:rgba(240,64,64,.25)}
+.si{font-size:1.6rem;flex-shrink:0;line-height:1}
+.st h3{font-size:.95rem;font-weight:700;margin-bottom:4px}
+.sbox.n .st h3{color:var(--green)}.sbox.w .st h3{color:var(--warn)}.sbox.d .st h3{color:var(--danger)}
+.st p{font-size:.78rem;color:var(--muted);line-height:1.6}
 
-      .rt {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 14px 16px;
-        margin-bottom: 10px;
-      }
-      .rt h3 {
-        font-size: 0.68rem;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 10px;
-      }
-      .rr {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 9px 0;
-        border-bottom: 1px solid var(--border);
-        font-size: 0.82rem;
-      }
-      .rr:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
-      .dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-      .dot.n {
-        background: var(--green);
-      }
-      .dot.w {
-        background: var(--warn);
-      }
-      .dot.d {
-        background: var(--danger);
-      }
-      .rlbl {
-        color: var(--muted);
-        flex: 1;
-      }
-      .rval {
-        font-family: var(--mono);
-        color: var(--text);
-        font-size: 0.78rem;
-        text-align: right;
-      }
+.rt{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.rt h3{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.rr{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.rr:last-child{border-bottom:none;padding-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot.n{background:var(--green)}.dot.w{background:var(--warn)}.dot.d{background:var(--danger)}
+.rlbl{color:var(--muted);flex:1}.rval{font-family:var(--mono);color:var(--text);font-size:.78rem;text-align:right}
 
-      .spin {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border: 2px solid rgba(0, 0, 0, 0.2);
-        border-top-color: #000;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-      }
-      .spin.light {
-        border-color: rgba(0, 200, 240, 0.2);
-        border-top-color: var(--accent);
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.2);
+  border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite}
+.spin.light{border-color:rgba(0,200,240,.2);border-top-color:var(--accent)}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-      .or-divider {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--muted);
-        font-size: 0.75rem;
-        margin: 10px 0;
-      }
-      .or-divider::before,
-      .or-divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: var(--border);
-      }
+.or-divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.75rem;margin:10px 0}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 
-      footer {
-        text-align: center;
-        color: var(--muted);
-        font-size: 0.65rem;
-        font-family: var(--mono);
-        padding: 8px 0 4px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="app">
-      <header>
-        <span class="header-icon">🌡️</span>
-        <h1>冷卻水塔監控</h1>
-        <p>CWA WEATHER · WET BULB CALCULATOR</p>
-      </header>
+footer{text-align:center;color:var(--muted);font-size:.65rem;font-family:var(--mono);padding:8px 0 4px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <span class="header-icon">🌡️</span>
+    <h1>冷卻水塔監控</h1>
+    <p>CWA O-A0001 + O-A0003 · WET BULB CALCULATOR</p>
+  </header>
 
-      <div class="card">
-        <div class="card-title">氣象站</div>
+  <div class="card">
+    <div class="card-title">氣象站</div>
 
-        <button class="btn btn-gps" id="geoBtn" onclick="fetchByGPS()">
-          <span>📍</span> 自動抓取目前位置
-        </button>
+    <button class="btn btn-gps" id="geoBtn" onclick="fetchByGPS()">
+      <span>📍</span> 自動抓取目前位置
+    </button>
 
-        <div class="or-divider">或輸入地區搜尋</div>
+    <div class="or-divider">或輸入地區搜尋</div>
 
-        <div class="search-wrap">
-          <input
-            type="text"
-            id="searchInput"
-            value="石牌"
-            inputmode="text"
-            autocomplete="off"
-          />
-          <button
-            class="btn btn-primary"
-            id="searchBtn"
-            onclick="fetchByName()"
-          >
-            搜尋
-          </button>
-        </div>
-
-        <div class="msg" id="fetchMsg"></div>
-
-        <div id="stationSelectWrap" style="display: none; margin-top: 12px">
-          <div class="ig">
-            <label>找到多個測站，請選擇</label>
-            <select id="stationSelect" onchange="selectStation()"></select>
-          </div>
-        </div>
-
-        <div id="autoPanel" style="display: none">
-          <div class="obs-grid">
-            <div class="obs-item wide">
-              <div class="lbl">測站</div>
-              <div class="v" id="aLoc">—</div>
-            </div>
-            <div class="obs-item">
-              <div class="lbl">乾球溫度</div>
-              <div class="v" id="aTemp">—</div>
-            </div>
-            <div class="obs-item">
-              <div class="lbl">相對濕度</div>
-              <div class="v" id="aHum">—</div>
-            </div>
-            <div class="obs-item">
-              <div class="lbl">風速</div>
-              <div class="v" id="aWind">—</div>
-            </div>
-            <div class="obs-item">
-              <div class="lbl">觀測時間</div>
-              <div class="v" id="aTime">—</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">計算參數</div>
-        <div class="ig">
-          <label>乾球溫度 (°C)</label>
-          <input
-            type="number"
-            id="tIn"
-            placeholder="例：33"
-            step="0.1"
-            inputmode="decimal"
-          />
-        </div>
-        <div class="ig">
-          <label>相對濕度 (%)</label>
-          <input
-            type="number"
-            id="hIn"
-            placeholder="例：70"
-            min="0"
-            max="100"
-            inputmode="numeric"
-          />
-        </div>
-        <div class="ig hl">
-          <label>⚡ 實際出水溫 (°C)（選填）</label>
-          <input
-            type="number"
-            id="aoIn"
-            placeholder="現場量測值"
-            step="0.1"
-            inputmode="decimal"
-          />
-        </div>
-        <div class="ig">
-          <label>逼近度設計值 (°C)</label>
-          <input
-            type="number"
-            id="apIn"
-            value="4"
-            min="1"
-            max="10"
-            step="0.5"
-            inputmode="decimal"
-          />
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-calc" onclick="calculate()">計 算</button>
-          <button class="btn btn-clear" onclick="clearAll()">清除</button>
-        </div>
-        <div class="msg err" id="calcMsg"></div>
-      </div>
-
-      <div class="results" id="results">
-        <div class="result-grid">
-          <div class="rc">
-            <div class="rl">乾球溫度</div>
-            <div class="rv" id="rT">—</div>
-            <div class="rs">Dry Bulb</div>
-          </div>
-          <div class="rc g">
-            <div class="rl">濕球溫度</div>
-            <div class="rv" id="rTw">—</div>
-            <div class="rs">Wet Bulb</div>
-          </div>
-          <div class="rc">
-            <div class="rl">相對濕度</div>
-            <div class="rv" id="rH">—</div>
-            <div class="rs">Humidity</div>
-          </div>
-          <div class="rc">
-            <div class="rl">出水溫目標</div>
-            <div class="rv" id="rTarget">—</div>
-            <div class="rs" id="rTargetSub">—</div>
-          </div>
-        </div>
-        <div class="result-grid" id="aoRow" style="display: none">
-          <div class="rc" id="aoCard">
-            <div class="rl">實際出水溫</div>
-            <div class="rv" id="rAO">—</div>
-            <div class="rs" id="rAOsub">—</div>
-          </div>
-          <div class="rc" id="apCard">
-            <div class="rl">實際逼近度</div>
-            <div class="rv" id="rAP">—</div>
-            <div class="rs">出水溫 − 濕球</div>
-          </div>
-        </div>
-        <div class="sbox n" id="sbox">
-          <div class="si" id="sicon">✅</div>
-          <div class="st">
-            <h3 id="stitle">—</h3>
-            <p id="sdesc">—</p>
-          </div>
-        </div>
-        <div class="rt">
-          <h3>出水溫判斷基準</h3>
-          <div class="rr">
-            <div class="dot n"></div>
-            <div class="rlbl">正常</div>
-            <div class="rval" id="rN">—</div>
-          </div>
-          <div class="rr">
-            <div class="dot w"></div>
-            <div class="rlbl">警告（效率下降）</div>
-            <div class="rval" id="rW">—</div>
-          </div>
-          <div class="rr">
-            <div class="dot d"></div>
-            <div class="rlbl">異常（立即檢查）</div>
-            <div class="rval" id="rD">—</div>
-          </div>
-        </div>
-        <div class="rt">
-          <h3>出水溫偏高可能原因</h3>
-          <div class="rr">
-            <div class="dot w"></div>
-            <div class="rlbl">填充料阻塞或老化</div>
-          </div>
-          <div class="rr">
-            <div class="dot w"></div>
-            <div class="rlbl">噴嘴堵塞或布水不均</div>
-          </div>
-          <div class="rr">
-            <div class="dot w"></div>
-            <div class="rlbl">風扇效率下降或損壞</div>
-          </div>
-          <div class="rr">
-            <div class="dot d"></div>
-            <div class="rlbl">循環水量不足（水泵）</div>
-          </div>
-          <div class="rr">
-            <div class="dot d"></div>
-            <div class="rlbl">冷凝器結垢或冷媒過充</div>
-          </div>
-        </div>
-      </div>
-
-      <footer>中央氣象署 O-A0001 + O-A0002 · 每10分鐘更新</footer>
+    <div class="search-wrap">
+      <input type="text" id="searchInput" value="石牌" inputmode="text" autocomplete="off">
+      <button class="btn btn-primary" id="searchBtn" onclick="fetchByName()">搜尋</button>
     </div>
 
-    <script>
-      const API_KEY = "CWA-8410C197-D590-442E-A5B8-FB795387E131";
-      const BASE = "https://opendata.cwa.gov.tw/api/v1/rest/datastore";
+    <div class="msg" id="fetchMsg"></div>
 
-      function wetBulb(T, RH) {
-        return (
-          Math.round(
-            (T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659)) +
-              Math.atan(T + RH) -
-              Math.atan(RH - 1.676331) +
-              0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) -
-              4.686035) *
-              10,
-          ) / 10
-        );
-      }
+    <div id="stationSelectWrap" style="display:none;margin-top:12px">
+      <div class="ig">
+        <label>找到多個測站，請選擇</label>
+        <select id="stationSelect" onchange="selectStation()"></select>
+      </div>
+    </div>
 
-      function setMsg(id, text, cls) {
-        const el = document.getElementById(id);
-        el.textContent = text;
-        el.className = "msg " + (cls || "");
-      }
+    <div id="autoPanel" style="display:none">
+      <div class="obs-grid">
+        <div class="obs-item wide"><div class="lbl">測站</div><div class="v" id="aLoc">—</div></div>
+        <div class="obs-item"><div class="lbl">乾球溫度</div><div class="v" id="aTemp">—</div></div>
+        <div class="obs-item"><div class="lbl">相對濕度</div><div class="v" id="aHum">—</div></div>
+        <div class="obs-item"><div class="lbl">風速</div><div class="v" id="aWind">—</div></div>
+        <div class="obs-item"><div class="lbl">觀測時間</div><div class="v" id="aTime">—</div></div>
+      </div>
+    </div>
+  </div>
 
-      function btnLoad(id, text, light) {
-        const btn = document.getElementById(id);
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spin${light ? " light" : ""}"></span> ${text}`;
-        return btn;
-      }
+  <div class="card">
+    <div class="card-title">計算參數</div>
+    <div class="ig">
+      <label>乾球溫度 (°C)</label>
+      <input type="number" id="tIn" placeholder="例：33" step="0.1" inputmode="decimal">
+    </div>
+    <div class="ig">
+      <label>相對濕度 (%)</label>
+      <input type="number" id="hIn" placeholder="例：70" min="0" max="100" inputmode="numeric">
+    </div>
+    <div class="ig hl">
+      <label>⚡ 實際出水溫 (°C)（選填）</label>
+      <input type="number" id="aoIn" placeholder="現場量測值" step="0.1" inputmode="decimal">
+    </div>
+    <div class="ig">
+      <label>逼近度設計值 (°C)</label>
+      <input type="number" id="apIn" value="4" min="1" max="10" step="0.5" inputmode="decimal">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-calc" onclick="calculate()">計 算</button>
+      <button class="btn btn-clear" onclick="clearAll()">清除</button>
+    </div>
+    <div class="msg err" id="calcMsg"></div>
+  </div>
 
-      function btnReset(btn, html) {
-        btn.disabled = false;
-        btn.innerHTML = html;
-      }
+  <div class="results" id="results">
+    <div class="result-grid">
+      <div class="rc"><div class="rl">乾球溫度</div><div class="rv" id="rT">—</div><div class="rs">Dry Bulb</div></div>
+      <div class="rc g"><div class="rl">濕球溫度</div><div class="rv" id="rTw">—</div><div class="rs">Wet Bulb</div></div>
+      <div class="rc"><div class="rl">相對濕度</div><div class="rv" id="rH">—</div><div class="rs">Humidity</div></div>
+      <div class="rc"><div class="rl">出水溫目標</div><div class="rv" id="rTarget">—</div><div class="rs" id="rTargetSub">—</div></div>
+    </div>
+    <div class="result-grid" id="aoRow" style="display:none">
+      <div class="rc" id="aoCard"><div class="rl">實際出水溫</div><div class="rv" id="rAO">—</div><div class="rs" id="rAOsub">—</div></div>
+      <div class="rc" id="apCard"><div class="rl">實際逼近度</div><div class="rv" id="rAP">—</div><div class="rs">出水溫 − 濕球</div></div>
+    </div>
+    <div class="sbox n" id="sbox">
+      <div class="si" id="sicon">✅</div>
+      <div class="st"><h3 id="stitle">—</h3><p id="sdesc">—</p></div>
+    </div>
+    <div class="rt">
+      <h3>出水溫判斷基準</h3>
+      <div class="rr"><div class="dot n"></div><div class="rlbl">正常</div><div class="rval" id="rN">—</div></div>
+      <div class="rr"><div class="dot w"></div><div class="rlbl">警告（效率下降）</div><div class="rval" id="rW">—</div></div>
+      <div class="rr"><div class="dot d"></div><div class="rlbl">異常（立即檢查）</div><div class="rval" id="rD">—</div></div>
+    </div>
+    <div class="rt">
+      <h3>出水溫偏高可能原因</h3>
+      <div class="rr"><div class="dot w"></div><div class="rlbl">填充料阻塞或老化</div></div>
+      <div class="rr"><div class="dot w"></div><div class="rlbl">噴嘴堵塞或布水不均</div></div>
+      <div class="rr"><div class="dot w"></div><div class="rlbl">風扇效率下降或損壞</div></div>
+      <div class="rr"><div class="dot d"></div><div class="rlbl">循環水量不足（水泵）</div></div>
+      <div class="rr"><div class="dot d"></div><div class="rlbl">冷凝器結垢或冷媒過充</div></div>
+    </div>
+  </div>
 
-      async function fetchAllStations() {
-        const auth = `Authorization=${API_KEY}&format=JSON&limit=1000`;
-        const [r1, r2] = await Promise.allSettled([
-          fetch(`${BASE}/O-A0001-001?${auth}`).then((r) => r.json()),
-          fetch(`${BASE}/O-A0002-001?${auth}`).then((r) => r.json()),
-        ]);
-        let stations = [];
-        if (r1.status === "fulfilled")
-          stations = stations.concat(
-            (r1.value?.records?.Station || []).map((x) => ({
-              ...x,
-              _src: "O-A0001",
-            })),
-          );
-        if (r2.status === "fulfilled")
-          stations = stations.concat(
-            (r2.value?.records?.Station || []).map((x) => ({
-              ...x,
-              _src: "O-A0002",
-            })),
-          );
-        if (stations.length === 0) throw new Error("無法取得測站資料");
-        return stations;
-      }
+  <footer>中央氣象署 O-A0001（有人站）+ O-A0003（自動站10分鐘） · 每10分鐘更新</footer>
+</div>
 
-      function getObs(s) {
-        const we = s.WeatherElement;
-        if (we && !Array.isArray(we))
-          return {
-            temp: parseFloat(we.AirTemperature),
-            hum: parseFloat(we.RelativeHumidity),
-            wind: parseFloat(we.WindSpeed),
-          };
-        if (Array.isArray(we)) {
-          const find = (name) => {
-            const el = we.find((e) => e.ElementName === name);
-            return parseFloat(
-              el?.ElementValue?.[0]?.value ?? el?.ElementValue ?? NaN,
-            );
-          };
-          return {
-            temp: find("氣溫"),
-            hum: find("相對濕度"),
-            wind: find("風速"),
-          };
-        }
-        return { temp: NaN, hum: NaN, wind: NaN };
-      }
+<script>
+const API_KEY = 'CWA-8410C197-D590-442E-A5B8-FB795387E131';
+const BASE    = 'https://opendata.cwa.gov.tw/api/v1/rest/datastore';
 
-      function getLatLon(s) {
-        const coords = s.GeoInfo?.Coordinates;
-        if (!coords) return null;
-        const wgs = Array.isArray(coords)
-          ? coords.find((c) => c.CoordinateName === "WGS84")
-          : coords;
-        if (!wgs) return null;
-        const lat = parseFloat(wgs.StationLatitude),
-          lon = parseFloat(wgs.StationLongitude);
-        return isNaN(lat) || isNaN(lon) ? null : { lat, lon };
-      }
+function wetBulb(T, RH) {
+  return Math.round((
+    T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659))
+    + Math.atan(T + RH)
+    - Math.atan(RH - 1.676331)
+    + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH)
+    - 4.686035
+  ) * 10) / 10;
+}
 
-      function distKm(la1, lo1, la2, lo2) {
-        const R = 6371,
-          dL = ((la2 - la1) * Math.PI) / 180,
-          dO = ((lo2 - lo1) * Math.PI) / 180;
-        const a =
-          Math.sin(dL / 2) ** 2 +
-          Math.cos((la1 * Math.PI) / 180) *
-            Math.cos((la2 * Math.PI) / 180) *
-            Math.sin(dO / 2) ** 2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      }
+function setMsg(id, text, cls) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg ' + (cls||'');
+}
 
-      function showStation(s, extra) {
-        const { temp, hum, wind } = getObs(s);
-        if (isNaN(temp) || isNaN(hum))
-          throw new Error(`「${s.StationName}」無溫濕度，請選其他測站`);
-        const time = (s.ObsTime?.DateTime || "—")
-          .replace("T", " ")
-          .substring(0, 16);
-        const county = s.GeoInfo?.CountyName || "";
-        const src = s._src === "O-A0001" ? "有人站" : "自動站";
-        document.getElementById("aLoc").textContent =
-          `${s.StationName}（${county}）[${src}]${extra ? " · " + extra : ""}`;
-        document.getElementById("aTemp").textContent = temp + " °C";
-        document.getElementById("aHum").textContent = hum + " %";
-        document.getElementById("aWind").textContent = isNaN(wind)
-          ? "—"
-          : wind + " m/s";
-        document.getElementById("aTime").textContent = time;
-        document.getElementById("autoPanel").style.display = "";
-        document.getElementById("tIn").value = temp;
-        document.getElementById("hIn").value = hum;
-        calculate();
-      }
+function btnLoad(id, text, light) {
+  const btn = document.getElementById(id);
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin${light?' light':''}"></span> ${text}`;
+  return btn;
+}
 
-      // ── GPS ───────────────────────────────────────────────────────
-      function fetchByGPS() {
-        if (!navigator.geolocation) {
-          setMsg("fetchMsg", "⚠ 不支援定位功能", "err");
-          return;
-        }
-        const btn = btnLoad("geoBtn", "定位中…");
-        setMsg("fetchMsg", "", "");
-        document.getElementById("autoPanel").style.display = "none";
+function btnReset(btn, html) { btn.disabled=false; btn.innerHTML=html; }
 
-        navigator.geolocation.getCurrentPosition(
-          async ({ coords: { latitude: lat, longitude: lon } }) => {
-            try {
-              setMsg("fetchMsg", "📡 定位成功，搜尋最近測站…", "warn");
-              const stations = await fetchAllStations();
-              let best = null,
-                bestDist = Infinity;
-              for (const s of stations) {
-                const pos = getLatLon(s);
-                if (!pos) continue;
-                const { temp, hum } = getObs(s);
-                if (isNaN(temp) || isNaN(hum)) continue;
-                const d = distKm(lat, lon, pos.lat, pos.lon);
-                if (d < bestDist) {
-                  bestDist = d;
-                  best = s;
-                }
-              }
-              if (!best) throw new Error("找不到附近有效測站");
-              showStation(best, `距離 ${bestDist.toFixed(1)} km`);
-              setMsg(
-                "fetchMsg",
-                `✓ ${best.StationName}，距離約 ${bestDist.toFixed(1)} km`,
-                "ok",
-              );
-            } catch (e) {
-              setMsg("fetchMsg", "⚠ " + e.message, "err");
-            }
-            btnReset(btn, "<span>📍</span> 自動抓取目前位置");
-          },
-          (err) => {
-            const m = {
-              1: "請允許位置權限後重試",
-              2: "無法取得位置，請手動搜尋",
-              3: "定位逾時，請重試",
-            };
-            setMsg("fetchMsg", "⚠ " + (m[err.code] || "定位失敗"), "err");
-            btnReset(btn, "<span>📍</span> 自動抓取目前位置");
-          },
-          { timeout: 15000, maximumAge: 60000, enableHighAccuracy: false },
-        );
-      }
+async function fetchAllStations() {
+  const auth = `Authorization=${API_KEY}&format=JSON&limit=1000`;
+  // O-A0001: 有人氣象站, O-A0003: 自動氣象站10分鐘綜觀（含溫濕度）
+  const [r1, r2] = await Promise.allSettled([
+    fetch(`${BASE}/O-A0001-001?${auth}`).then(r=>r.json()),
+    fetch(`${BASE}/O-A0003-001?${auth}`).then(r=>r.json()),
+  ]);
+  let stations = [];
+  if (r1.status==='fulfilled') stations = stations.concat((r1.value?.records?.Station||[]).map(x=>({...x,_src:'O-A0001'})));
+  if (r2.status==='fulfilled') stations = stations.concat((r2.value?.records?.Station||[]).map(x=>({...x,_src:'O-A0003'})));
+  if (stations.length===0) throw new Error('無法取得測站資料');
+  return stations;
+}
 
-      // ── 關鍵字搜尋（共用邏輯）────────────────────────────────────
-      async function doSearch(kw) {
+function getObs(s) {
+  // O-A0001 與 O-A0003 的 WeatherElement 都是物件，欄位名稱相同
+  const we = s.WeatherElement;
+  if (we && !Array.isArray(we)) {
+    return {
+      temp: parseFloat(we.AirTemperature),
+      hum:  parseFloat(we.RelativeHumidity),
+      wind: parseFloat(we.WindSpeed),
+    };
+  }
+  return { temp:NaN, hum:NaN, wind:NaN };
+}
+
+function getLatLon(s) {
+  const coords = s.GeoInfo?.Coordinates;
+  if (!coords) return null;
+  const wgs = Array.isArray(coords) ? coords.find(c=>c.CoordinateName==='WGS84') : coords;
+  if (!wgs) return null;
+  const lat=parseFloat(wgs.StationLatitude), lon=parseFloat(wgs.StationLongitude);
+  return (isNaN(lat)||isNaN(lon)) ? null : {lat,lon};
+}
+
+function distKm(la1,lo1,la2,lo2) {
+  const R=6371, dL=(la2-la1)*Math.PI/180, dO=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function showStation(s, extra) {
+  const {temp,hum,wind} = getObs(s);
+  if (isNaN(temp)||isNaN(hum)) throw new Error(`「${s.StationName}」無溫濕度，請選其他測站`);
+  const time   = (s.ObsTime?.DateTime||'—').replace('T',' ').substring(0,16);
+  const county = s.GeoInfo?.CountyName||'';
+  const src    = s._src==='O-A0001'?'有人站':'自動站';
+  document.getElementById('aLoc').textContent  = `${s.StationName}（${county}）[${src}]${extra?' · '+extra:''}`;
+  document.getElementById('aTemp').textContent = temp+' °C';
+  document.getElementById('aHum').textContent  = hum+' %';
+  document.getElementById('aWind').textContent = isNaN(wind)?'—':wind+' m/s';
+  document.getElementById('aTime').textContent = time;
+  document.getElementById('autoPanel').style.display = '';
+  document.getElementById('tIn').value = temp;
+  document.getElementById('hIn').value = hum;
+  calculate();
+}
+
+// ── GPS ───────────────────────────────────────────────────────
+function fetchByGPS() {
+  if (!navigator.geolocation) { setMsg('fetchMsg','⚠ 不支援定位功能','err'); return; }
+  const btn = btnLoad('geoBtn','定位中…');
+  setMsg('fetchMsg','','');
+  document.getElementById('autoPanel').style.display='none';
+
+  navigator.geolocation.getCurrentPosition(
+    async ({coords:{latitude:lat,longitude:lon}}) => {
+      try {
+        setMsg('fetchMsg','📡 定位成功，搜尋最近測站…','warn');
         const stations = await fetchAllStations();
-        const valid = stations.filter((s) => {
-          const name = s.StationName || "",
-            county = s.GeoInfo?.CountyName || "",
-            town = s.GeoInfo?.TownName || "";
-          if (!name.includes(kw) && !county.includes(kw) && !town.includes(kw))
-            return false;
-          const { temp, hum } = getObs(s);
-          return !isNaN(temp) && !isNaN(hum);
-        });
-        return valid;
+        let best=null, bestDist=Infinity;
+        for (const s of stations) {
+          const pos=getLatLon(s); if (!pos) continue;
+          const {temp,hum}=getObs(s); if (isNaN(temp)||isNaN(hum)) continue;
+          const d=distKm(lat,lon,pos.lat,pos.lon);
+          if (d<bestDist) { bestDist=d; best=s; }
+        }
+        if (!best) throw new Error('找不到附近有效測站');
+        showStation(best, `距離 ${bestDist.toFixed(1)} km`);
+        setMsg('fetchMsg',`✓ ${best.StationName}，距離約 ${bestDist.toFixed(1)} km`,'ok');
+      } catch(e) { setMsg('fetchMsg','⚠ '+e.message,'err'); }
+      btnReset(btn,'<span>📍</span> 自動抓取目前位置');
+    },
+    (err) => {
+      const m={1:'請允許位置權限後重試',2:'無法取得位置，請手動搜尋',3:'定位逾時，請重試'};
+      setMsg('fetchMsg','⚠ '+(m[err.code]||'定位失敗'),'err');
+      btnReset(btn,'<span>📍</span> 自動抓取目前位置');
+    },
+    { timeout:15000, maximumAge:60000, enableHighAccuracy:false }
+  );
+}
+
+// ── 關鍵字搜尋（共用邏輯）────────────────────────────────────
+async function doSearch(kw) {
+  const stations = await fetchAllStations();
+  const valid = stations.filter(s => {
+    const name=s.StationName||'', county=s.GeoInfo?.CountyName||'', town=s.GeoInfo?.TownName||'';
+    if (!name.includes(kw)&&!county.includes(kw)&&!town.includes(kw)) return false;
+    const {temp,hum}=getObs(s);
+    return !isNaN(temp)&&!isNaN(hum);
+  });
+  return valid;
+}
+
+async function fetchByName() {
+  const kw = document.getElementById('searchInput').value.trim();
+  if (!kw) { setMsg('fetchMsg','⚠ 請輸入關鍵字','err'); return; }
+  const btn = btnLoad('searchBtn','搜尋中');
+  setMsg('fetchMsg','','');
+  document.getElementById('autoPanel').style.display='none';
+  document.getElementById('stationSelectWrap').style.display='none';
+  try {
+    const valid = await doSearch(kw);
+    if (valid.length===0) {
+      setMsg('fetchMsg',`⚠ 找不到「${kw}」，試試：竹子湖、淡水、臺北、板橋`,'err');
+    } else {
+      window._stations = valid;
+      if (valid.length===1) {
+        showStation(valid[0]);
+        setMsg('fetchMsg',`✓ 已取得「${valid[0].StationName}」即時觀測`,'ok');
+      } else {
+        const sel = document.getElementById('stationSelect');
+        sel.innerHTML = valid.map(s => {
+          const {temp,hum}=getObs(s), county=s.GeoInfo?.CountyName||'', src=s._src==='O-A0001'?'有人':'自動(O-A0003)';
+          return `<option value="${s.StationId}">${s.StationName}（${county}）[${src}] ${temp}°C ${hum}%</option>`;
+        }).join('');
+        document.getElementById('stationSelectWrap').style.display='';
+        showStation(valid[0]);
+        setMsg('fetchMsg',`找到 ${valid.length} 個測站，請從下拉選擇`,'warn');
       }
+    }
+  } catch(e) { setMsg('fetchMsg','⚠ '+e.message,'err'); }
+  btnReset(btn,'搜尋');
+}
 
-      async function fetchByName() {
-        const kw = document.getElementById("searchInput").value.trim();
-        if (!kw) {
-          setMsg("fetchMsg", "⚠ 請輸入關鍵字", "err");
-          return;
-        }
-        const btn = btnLoad("searchBtn", "搜尋中");
-        setMsg("fetchMsg", "", "");
-        document.getElementById("autoPanel").style.display = "none";
-        document.getElementById("stationSelectWrap").style.display = "none";
-        try {
-          const valid = await doSearch(kw);
-          if (valid.length === 0) {
-            setMsg(
-              "fetchMsg",
-              `⚠ 找不到「${kw}」，試試：竹子湖、淡水、臺北、板橋`,
-              "err",
-            );
-          } else {
-            window._stations = valid;
-            if (valid.length === 1) {
-              showStation(valid[0]);
-              setMsg(
-                "fetchMsg",
-                `✓ 已取得「${valid[0].StationName}」即時觀測`,
-                "ok",
-              );
-            } else {
-              const sel = document.getElementById("stationSelect");
-              sel.innerHTML = valid
-                .map((s) => {
-                  const { temp, hum } = getObs(s),
-                    county = s.GeoInfo?.CountyName || "",
-                    src = s._src === "O-A0001" ? "有人" : "自動";
-                  return `<option value="${s.StationId}">${s.StationName}（${county}）[${src}] ${temp}°C ${hum}%</option>`;
-                })
-                .join("");
-              document.getElementById("stationSelectWrap").style.display = "";
-              showStation(valid[0]);
-              setMsg(
-                "fetchMsg",
-                `找到 ${valid.length} 個測站，請從下拉選擇`,
-                "warn",
-              );
-            }
-          }
-        } catch (e) {
-          setMsg("fetchMsg", "⚠ " + e.message, "err");
-        }
-        btnReset(btn, "搜尋");
-      }
+function selectStation() {
+  const id=document.getElementById('stationSelect').value;
+  const s=(window._stations||[]).find(x=>x.StationId===id);
+  if (s) { try { showStation(s); setMsg('fetchMsg',`✓ 已切換至「${s.StationName}」`,'ok'); } catch(e){ setMsg('fetchMsg','⚠ '+e.message,'err'); } }
+}
 
-      function selectStation() {
-        const id = document.getElementById("stationSelect").value;
-        const s = (window._stations || []).find((x) => x.StationId === id);
-        if (s) {
-          try {
-            showStation(s);
-            setMsg("fetchMsg", `✓ 已切換至「${s.StationName}」`, "ok");
-          } catch (e) {
-            setMsg("fetchMsg", "⚠ " + e.message, "err");
-          }
-        }
-      }
+// ── 計算 ───────────────────────────────────────────────────────
+function calculate() {
+  const T=parseFloat(document.getElementById('tIn').value);
+  const RH=parseFloat(document.getElementById('hIn').value);
+  const ap=parseFloat(document.getElementById('apIn').value)||4;
+  const ao=parseFloat(document.getElementById('aoIn').value);
+  setMsg('calcMsg','','');
+  if (isNaN(T)||isNaN(RH)) { setMsg('calcMsg','⚠ 請輸入乾球溫度與相對濕度','err'); return; }
+  if (RH<0||RH>100)        { setMsg('calcMsg','⚠ 濕度需介於 0~100%','err'); return; }
 
-      // ── 計算 ───────────────────────────────────────────────────────
-      function calculate() {
-        const T = parseFloat(document.getElementById("tIn").value);
-        const RH = parseFloat(document.getElementById("hIn").value);
-        const ap = parseFloat(document.getElementById("apIn").value) || 4;
-        const ao = parseFloat(document.getElementById("aoIn").value);
-        setMsg("calcMsg", "", "");
-        if (isNaN(T) || isNaN(RH)) {
-          setMsg("calcMsg", "⚠ 請輸入乾球溫度與相對濕度", "err");
-          return;
-        }
-        if (RH < 0 || RH > 100) {
-          setMsg("calcMsg", "⚠ 濕度需介於 0~100%", "err");
-          return;
-        }
+  const Tw=wetBulb(T,RH), target=+(Tw+ap).toFixed(1), normMax=+(Tw+5).toFixed(1), warnMax=+(Tw+8).toFixed(1);
+  document.getElementById('rT').textContent=T.toFixed(1)+' °C';
+  document.getElementById('rTw').textContent=Tw+' °C';
+  document.getElementById('rH').textContent=RH.toFixed(0)+' %';
+  document.getElementById('rTarget').textContent=target+' °C';
+  document.getElementById('rTargetSub').textContent=`濕球${Tw}°C + 逼近度${ap}°C`;
+  document.getElementById('rN').textContent=`≤ ${normMax} °C`;
+  document.getElementById('rW').textContent=`${normMax}~${warnMax} °C`;
+  document.getElementById('rD').textContent=`> ${warnMax} °C`;
 
-        const Tw = wetBulb(T, RH),
-          target = +(Tw + ap).toFixed(1),
-          normMax = +(Tw + 5).toFixed(1),
-          warnMax = +(Tw + 8).toFixed(1);
-        document.getElementById("rT").textContent = T.toFixed(1) + " °C";
-        document.getElementById("rTw").textContent = Tw + " °C";
-        document.getElementById("rH").textContent = RH.toFixed(0) + " %";
-        document.getElementById("rTarget").textContent = target + " °C";
-        document.getElementById("rTargetSub").textContent =
-          `濕球${Tw}°C + 逼近度${ap}°C`;
-        document.getElementById("rN").textContent = `≤ ${normMax} °C`;
-        document.getElementById("rW").textContent = `${normMax}~${warnMax} °C`;
-        document.getElementById("rD").textContent = `> ${warnMax} °C`;
+  let level='n';
+  if (!isNaN(ao)) {
+    document.getElementById('aoRow').style.display='';
+    const rAP=+(ao-Tw).toFixed(1);
+    document.getElementById('rAO').textContent=ao+' °C';
+    document.getElementById('rAP').textContent=rAP+' °C';
+    if      (ao<=normMax){level='n';document.getElementById('rAOsub').textContent='✅ 正常';}
+    else if (ao<=warnMax){level='w';document.getElementById('rAOsub').textContent='⚠ 偏高，需注意';}
+    else                 {level='d';document.getElementById('rAOsub').textContent='❌ 異常，立即檢查';}
+    document.getElementById('aoCard').className='rc '+level;
+    document.getElementById('apCard').className='rc '+level;
+  } else {
+    document.getElementById('aoRow').style.display='none';
+  }
 
-        let level = "n";
-        if (!isNaN(ao)) {
-          document.getElementById("aoRow").style.display = "";
-          const rAP = +(ao - Tw).toFixed(1);
-          document.getElementById("rAO").textContent = ao + " °C";
-          document.getElementById("rAP").textContent = rAP + " °C";
-          if (ao <= normMax) {
-            level = "n";
-            document.getElementById("rAOsub").textContent = "✅ 正常";
-          } else if (ao <= warnMax) {
-            level = "w";
-            document.getElementById("rAOsub").textContent = "⚠ 偏高，需注意";
-          } else {
-            level = "d";
-            document.getElementById("rAOsub").textContent = "❌ 異常，立即檢查";
-          }
-          document.getElementById("aoCard").className = "rc " + level;
-          document.getElementById("apCard").className = "rc " + level;
-        } else {
-          document.getElementById("aoRow").style.display = "none";
-        }
+  document.getElementById('sbox').className='sbox '+level;
+  const cfg={
+    n:{icon:'✅',title:'運作正常',desc:isNaN(ao)?`濕球溫度 ${Tw}°C，出水溫目標 ${target}°C。輸入現場出水溫可判斷狀態。`:`出水溫 ${ao}°C，逼近度 ${+(ao-Tw).toFixed(1)}°C，正常。`},
+    w:{icon:'⚠️',title:'效率偏低，建議檢查',desc:`出水溫 ${ao}°C 超過正常上限 ${normMax}°C，請檢查填充料、噴嘴及風扇。`},
+    d:{icon:'🚨',title:'異常！立即排查',desc:`出水溫 ${ao}°C 嚴重超標（上限 ${normMax}°C），高壓壓力恐持續升高，有跳機風險！`}
+  };
+  document.getElementById('sicon').textContent=cfg[level].icon;
+  document.getElementById('stitle').textContent=cfg[level].title;
+  document.getElementById('sdesc').textContent=cfg[level].desc;
+  document.getElementById('results').classList.add('show');
+  setTimeout(()=>document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
 
-        document.getElementById("sbox").className = "sbox " + level;
-        const cfg = {
-          n: {
-            icon: "✅",
-            title: "運作正常",
-            desc: isNaN(ao)
-              ? `濕球溫度 ${Tw}°C，出水溫目標 ${target}°C。輸入現場出水溫可判斷狀態。`
-              : `出水溫 ${ao}°C，逼近度 ${+(ao - Tw).toFixed(1)}°C，正常。`,
-          },
-          w: {
-            icon: "⚠️",
-            title: "效率偏低，建議檢查",
-            desc: `出水溫 ${ao}°C 超過正常上限 ${normMax}°C，請檢查填充料、噴嘴及風扇。`,
-          },
-          d: {
-            icon: "🚨",
-            title: "異常！立即排查",
-            desc: `出水溫 ${ao}°C 嚴重超標（上限 ${normMax}°C），高壓壓力恐持續升高，有跳機風險！`,
-          },
-        };
-        document.getElementById("sicon").textContent = cfg[level].icon;
-        document.getElementById("stitle").textContent = cfg[level].title;
-        document.getElementById("sdesc").textContent = cfg[level].desc;
-        document.getElementById("results").classList.add("show");
-        setTimeout(
-          () =>
-            document
-              .getElementById("results")
-              .scrollIntoView({ behavior: "smooth", block: "start" }),
-          100,
-        );
-      }
+function clearAll() {
+  ['tIn','hIn','aoIn'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('apIn').value='4';
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('autoPanel').style.display='none';
+  document.getElementById('stationSelectWrap').style.display='none';
+  setMsg('fetchMsg','',''); setMsg('calcMsg','','');
+}
 
-      function clearAll() {
-        ["tIn", "hIn", "aoIn"].forEach(
-          (id) => (document.getElementById(id).value = ""),
-        );
-        document.getElementById("apIn").value = "4";
-        document.getElementById("results").classList.remove("show");
-        document.getElementById("autoPanel").style.display = "none";
-        document.getElementById("stationSelectWrap").style.display = "none";
-        setMsg("fetchMsg", "", "");
-        setMsg("calcMsg", "", "");
-      }
+document.addEventListener('keydown', e => {
+  if (e.key!=='Enter') return;
+  if (document.activeElement?.id==='searchInput') fetchByName();
+  else calculate();
+});
 
-      document.addEventListener("keydown", (e) => {
-        if (e.key !== "Enter") return;
-        if (document.activeElement?.id === "searchInput") fetchByName();
-        else calculate();
-      });
+// ── 開啟時直接抓取 C0AI40（石牌）────────────────────────────
+async function fetchByStationId(stationId) {
+  setMsg('fetchMsg','載入中…','warn');
+  document.getElementById('autoPanel').style.display='none';
+  try {
+    const stations = await fetchAllStations();
+    const s = stations.find(x => x.StationId === stationId);
+    if (!s) throw new Error(`找不到測站 ${stationId}`);
+    showStation(s);
+    setMsg('fetchMsg',`✓ 已取得「${s.StationName}」即時觀測`,'ok');
+  } catch(e) {
+    setMsg('fetchMsg','⚠ '+e.message,'err');
+  }
+}
 
-      // ── 開啟時直接抓取 C0AI40（石牌）────────────────────────────
-      async function fetchByStationId(stationId) {
-        setMsg("fetchMsg", "載入中…", "warn");
-        document.getElementById("autoPanel").style.display = "none";
-        try {
-          const stations = await fetchAllStations();
-          const s = stations.find((x) => x.StationId === stationId);
-          if (!s) throw new Error(`找不到測站 ${stationId}`);
-          showStation(s);
-          setMsg("fetchMsg", `✓ 已取得「${s.StationName}」即時觀測`, "ok");
-        } catch (e) {
-          setMsg("fetchMsg", "⚠ " + e.message, "err");
-        }
-      }
-
-      window.addEventListener("load", () => {
-        fetchByStationId("C0AI40");
-      });
-    </script>
-  </body>
+window.addEventListener('load', () => {
+  fetchByStationId('C0AI40');
+});
+</script>
+</body>
 </html>
