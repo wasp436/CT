@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
@@ -12,7 +12,7 @@
       content="black-translucent"
     />
     <meta name="theme-color" content="#0a0e14" />
-    <title>水塔監控</title>
+    <title>冷卻水塔監控</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap");
 
@@ -528,14 +528,53 @@
         font-family: var(--mono);
         padding: 8px 0 4px;
       }
-    </style>
+
+      .app { max-width: 960px !important; }
+      .pane1 { max-width: 480px; margin: 0 auto; }
+      .tabs { display: flex; gap: 8px; justify-content: center; margin: 4px 0 8px; }
+      .tabs button, #tabGauge .seg button {
+        background: var(--panel2); color: var(--muted); border: 1px solid var(--border);
+        border-radius: 10px; padding: 10px 18px; font-family: var(--sans); font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      }
+      .tabs button.on, #tabGauge .seg button.on { background: var(--accent); color: #000; border-color: var(--accent); }
+      #tabGauge .seg { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+      #tabGauge .seg button { padding: 8px 14px; font-size: 0.82rem; }
+      #tabGauge .gh1 { font-size: 1.25rem; color: var(--accent); text-align: center; margin: 10px 0 18px; }
+      #tabGauge section { margin-bottom: 28px; }
+      #tabGauge section > h2 { font-size: 1.05rem; margin-bottom: 4px; }
+      #tabGauge .sub { font-size: 0.78rem; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+      #tabGauge .ctl { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+      #tabGauge .ctl label { font-size: 0.72rem; color: var(--muted); display: block; margin-bottom: 4px; }
+      #tabGauge .ctl input { width: 110px; padding: 9px 10px; font-size: 1rem; }
+      #tabGauge .slides { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 12px; }
+      #tabGauge .slides label { font-size: 0.74rem; color: var(--muted); display: block; margin-bottom: 4px; }
+      #tabGauge .slides b { color: var(--accent); font-family: var(--mono); }
+      #tabGauge input[type="range"] { width: 100%; padding: 0; border: none; background: transparent; accent-color: var(--accent); height: 28px; }
+      #tabGauge .err { color: #f04040; font-size: 0.78rem; min-height: 18px; margin-bottom: 8px; }
+      #tabGauge .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+      #tabGauge .card { margin-bottom: 0; }
+      #tabGauge .card h3 { font-size: 1rem; margin-bottom: 2px; }
+      #tabGauge .card .rng { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
+      #tabGauge svg { width: 100%; height: auto; display: block; }
+      #tabGauge table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 10px; }
+      #tabGauge th, #tabGauge td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+      #tabGauge th:first-child, #tabGauge td:first-child { text-align: left; }
+      #tabGauge th { color: var(--muted); font-weight: 500; }
+      #tabGauge tr.edge td { color: var(--warn); font-weight: 700; }
+      #tabGauge .note { font-size: 0.72rem; color: var(--muted); line-height: 1.7; }
+        </style>
   </head>
   <body>
     <div class="app">
+      <div class="tabs">
+        <button id="tabBtnMon" class="on" onclick="showTab('tabMon')">水塔監控</button>
+        <button id="tabBtnGauge" onclick="showTab('tabGauge')">冷媒壓力錶</button>
+      </div>
+      <div id="tabMon" class="pane1">
       <header>
         <span class="header-icon">🌡️</span>
         <h1>冷卻水塔監控</h1>
-        <p>CWA O-A0001 + O-A0003 · WET BULB CALCULATOR</p>
+        <p>CWA O-A0001 · WET BULB CALCULATOR</p>
       </header>
 
       <div class="card">
@@ -586,10 +625,6 @@
             <div class="obs-item">
               <div class="lbl">相對濕度</div>
               <div class="v" id="aHum">—</div>
-            </div>
-            <div class="obs-item">
-              <div class="lbl">風速</div>
-              <div class="v" id="aWind">—</div>
             </div>
             <div class="obs-item">
               <div class="lbl">觀測時間</div>
@@ -653,20 +688,10 @@
 
       <div class="results" id="results">
         <div class="result-grid">
-          <div class="rc">
-            <div class="rl">乾球溫度</div>
-            <div class="rv" id="rT">—</div>
-            <div class="rs">Dry Bulb</div>
-          </div>
           <div class="rc g">
             <div class="rl">濕球溫度</div>
             <div class="rv" id="rTw">—</div>
             <div class="rs">Wet Bulb</div>
-          </div>
-          <div class="rc">
-            <div class="rl">相對濕度</div>
-            <div class="rv" id="rH">—</div>
-            <div class="rs">Humidity</div>
           </div>
           <div class="rc">
             <div class="rl">出水溫目標</div>
@@ -725,85 +750,102 @@
             <div class="dot w"></div>
             <div class="rlbl">風扇效率下降或損壞</div>
           </div>
-          <div class="rr">
-            <div class="dot d"></div>
-            <div class="rlbl">循環水量不足（水泵）</div>
-          </div>
-          <div class="rr">
-            <div class="dot d"></div>
-            <div class="rlbl">冷凝器結垢或冷媒過充</div>
-          </div>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">📡 資料來源</div>
-        <div class="rt" style="margin-bottom: 0">
-          <h3>中央氣象署 開放資料平臺（CWA Open Data）</h3>
-          <div class="rr">
-            <div class="rlbl">平臺網址</div>
-            <div class="rval">
-              <a
-                href="https://opendata.cwa.gov.tw"
-                target="_blank"
-                class="src-link"
-                >opendata.cwa.gov.tw</a
-              >
-            </div>
-          </div>
-          <div class="rr">
-            <div class="dot n"></div>
-            <div class="rlbl">
-              <span class="src-badge">O-A0001</span>&ensp;有人氣象站即時觀測
-              <div
-                style="
-                  font-size: 0.68rem;
-                  color: var(--muted);
-                  margin-top: 3px;
-                  line-height: 1.5;
-                "
-              >
-                有常駐氣象觀測員、定時人工讀值的局屬測站<br />
-                （站號 466xxx / 467xxx，全台約 28 站）
-              </div>
-            </div>
-          </div>
-          <div class="rr">
-            <div class="dot n"></div>
-            <div class="rlbl">
-              <span class="src-badge">O-A0003</span>&ensp;自動氣象站 10 分鐘資料
-              <div
-                style="
-                  font-size: 0.68rem;
-                  color: var(--muted);
-                  margin-top: 3px;
-                  line-height: 1.5;
-                "
-              >
-                無人值守、感測器自動回傳的輔助測站<br />
-                （站號 C0xxxx，全台約 700 站）
-              </div>
-            </div>
-          </div>
-          <div class="rr">
-            <div class="rlbl">更新頻率</div>
-            <div class="rval">每 10 分鐘</div>
-          </div>
-          <div class="rr">
-            <div class="rlbl">授權條款</div>
-            <div class="rval">
-              <a
-                href="https://opendata.cwa.gov.tw/about"
-                target="_blank"
-                class="src-link"
-                >政府資料開放授權條款 1.0</a
-              >
-            </div>
-          </div>
+        <div class="card-title">主機高壓（冷凝壓力，錶壓）</div>
+        <div class="ig">
+          <label>冷凝器水側溫升 (°C)（出水溫 − 進水溫，常見約 5）</label>
+          <input
+            type="number"
+            id="riseIn"
+            value="5"
+            step="0.5"
+            inputmode="decimal"
+            oninput="autoRef()"
+          />
         </div>
+        <div class="ig">
+          <label>冷凝器端差 (°C)（冷凝溫度 − 冷卻水出口，常見 2~5）</label>
+          <input
+            type="number"
+            id="tdIn"
+            value="3"
+            step="0.5"
+            inputmode="decimal"
+            oninput="autoRef()"
+          />
+        </div>
+        <div class="ig">
+          <label>冷凝溫度 (°C)＝水塔出水溫 + 溫升 + 端差，可手動修改</label>
+          <input
+            type="number"
+            id="rfIn"
+            placeholder="-30 ~ 70"
+            step="0.1"
+            inputmode="decimal"
+            oninput="rfEdited = true; renderRef()"
+          />
+        </div>
+        <div class="msg err" id="rfMsg"></div>
+        <div id="rfOut"></div>
       </div>
 
       <footer>氣象資料來源：中央氣象署 · 本工具僅供參考</footer>
+      </div>
+
+      <div id="tabGauge" style="display: none">
+      <h1 class="gh1">冷媒高低壓壓力錶</h1>
+      <section>
+        <h2>高壓（冷凝壓力）</h2>
+        <div class="seg">
+          <button id="btnRange" class="on" onclick="setMode('range', true)">臺北範圍 14~35 °C</button>
+          <button id="btnLive" onclick="setMode('live')">石牌現在天氣</button>
+        </div>
+        <p class="sub">
+          外氣 → 濕球溫度 → 水塔出水溫（濕球 + 逼近度）→ 冷凝溫度（+ 水側溫升 + 端差）→ 高壓；橘色弧段為此範圍，外圈 psi、內圈 MPa
+        </p>
+        <div id="hLive" style="display: none"><div class="sub" id="hLiveInfo"></div></div>
+        <div id="hRange" class="ctl">
+          <div><label>外氣溫度 下限 (°C)</label><input id="hLo" type="number" value="14" step="0.5" /></div>
+          <div><label>下限時相對濕度 (%)</label><input id="hLoRH" type="number" value="77" min="1" max="100" /></div>
+          <div><label>外氣溫度 上限 (°C)</label><input id="hHi" type="number" value="35" step="0.5" /></div>
+          <div><label>上限時相對濕度 (%)</label><input id="hHiRH" type="number" value="71" min="1" max="100" /></div>
+        </div>
+        <div id="hSlide" class="slides">
+          <div><label>拖曳調整外氣溫度下限：<b id="hLoV">14</b> °C</label><input id="hLoS" type="range" min="-5" max="45" step="0.5" value="14" /></div>
+          <div><label>拖曳調整外氣溫度上限：<b id="hHiV">35</b> °C</label><input id="hHiS" type="range" min="-5" max="45" step="0.5" value="35" /></div>
+        </div>
+        <div class="ctl">
+          <div><label>水塔逼近度 (°C)</label><input id="hAp" type="number" value="3" step="0.5" /></div>
+          <div><label>冷凝器水側溫升 (°C)</label><input id="hRise" type="number" value="5" step="0.5" /></div>
+          <div><label>冷凝器端差 (°C)</label><input id="hTd" type="number" value="3" step="0.5" /></div>
+        </div>
+        <div class="err" id="hErr"></div>
+        <div class="grid" id="hGrid"></div>
+      </section>
+
+      <section>
+        <h2>低壓（蒸發壓力）</h2>
+        <p class="sub">蒸發溫度 ＝ 冰水出水溫 − 蒸發器端差</p>
+        <div class="ctl">
+          <div><label>冰水出水溫 下限 (°C)</label><input id="lLo" type="number" value="7" step="0.5" /></div>
+          <div><label>冰水出水溫 上限 (°C)</label><input id="lHi" type="number" value="9" step="0.5" /></div>
+          <div><label>蒸發器端差 (°C)</label><input id="lAp" type="number" value="3" step="0.5" /></div>
+        </div>
+        <div class="err" id="lErr"></div>
+        <div class="grid" id="lGrid"></div>
+      </section>
+
+      <p class="note">
+        · 壓力為錶壓（絕對壓力 − 101.325 kPa），飽和露點，由 CoolProp 計算（−10~70 °C 每 1 °C 一點，其間內插）。<br />
+        · 高壓：切換「石牌現在天氣」會抓氣象署石牌站（C0AI40）目前的溫度與濕度，只算單一點。<br />
+        · 高壓：冷凝溫度 ＝ 濕球溫度 + 水塔逼近度 + 冷凝器水側溫升 + 冷凝器端差。「臺北範圍」預設 14 °C/77%（臺北冬季低點）與 35 °C/71%（夏季高點）取自氣象署臺北站 1991~2020 月統計；逼近度 3、溫升 5、端差 3 為經驗值，請依實際主機調整。濕球用 Stull 公式。<br />
+        · 低壓：蒸發器端差常見約 2~5 °C（預設 3 °C 為經驗值）。<br />
+        · 錶頭量程為常見規格，非主機原廠規格：高壓 R410A 0~800 psi、R134a 0~500 psi；低壓 R410A 0~250 psi、R134a 0~120 psi。低壓錶多為負壓複合錶，此處只畫正壓段。請以原廠錶頭為準。
+      </p>
+    </div>
     </div>
 
     <script>
@@ -821,6 +863,60 @@
               10,
           ) / 10
         );
+      }
+
+      // 飽和壓力表（絕對壓力 kPa，露點，CoolProp），-30~70°C 每 5°C 一點
+      const REF = {
+        R134a: [84.4, 106.4, 132.7, 163.9, 200.6, 243.3, 292.8, 349.7, 414.6, 488.4, 571.7, 665.4, 770.2, 887.0, 1016.6, 1159.9, 1317.9, 1491.5, 1681.8, 1889.8, 2116.8],
+        R410a: [269.3, 329.4, 399.3, 480.0, 572.7, 678.3, 798.1, 933.2, 1084.8, 1254.3, 1442.9, 1652.1, 1883.4, 2138.3, 2418.6, 2726.1, 3063.0, 3431.6, 3834.8, 4276.3, 4761.7],
+      };
+      const T0 = -30, TSTEP = 5;
+      let rfEdited = false;
+
+      // 以 ln(P) 對溫度線性內插
+      function satPressure(name, t) {
+        const a = REF[name], i = Math.min(Math.floor((t - T0) / TSTEP), a.length - 2);
+        const f = (t - T0 - i * TSTEP) / TSTEP;
+        return Math.exp(Math.log(a[i]) * (1 - f) + Math.log(a[i + 1]) * f);
+      }
+
+      let lastWater = NaN; // 最近一次計算的水塔出水溫（實際值優先，否則目標值）
+
+      function autoRef() {
+        rfEdited = false;
+        const rise = parseFloat(document.getElementById("riseIn").value) || 0,
+          td = parseFloat(document.getElementById("tdIn").value) || 0;
+        document.getElementById("rfIn").value = isNaN(lastWater)
+          ? ""
+          : +(lastWater + rise + td).toFixed(1);
+        renderRef();
+      }
+
+      function renderRef() {
+        const t = parseFloat(document.getElementById("rfIn").value);
+        const out = document.getElementById("rfOut");
+        setMsg("rfMsg", "", "err");
+        out.innerHTML = "";
+        if (isNaN(t)) return;
+        if (t < T0 || t > 70) {
+          setMsg("rfMsg", "⚠ 溫度需介於 -30~70 °C", "err");
+          return;
+        }
+        out.innerHTML = Object.keys(REF)
+          .map((n) => {
+            const g = satPressure(n, t) - 101.325; // 錶壓 kPa
+            const rows = [
+              ["kPa (G)", g.toFixed(0)],
+              ["MPa (G)", (g / 1000).toFixed(3)],
+              ["bar (G)", (g / 100).toFixed(2)],
+              ["kgf/cm² (G)", (g / 98.0665).toFixed(2)],
+              ["psig", (g / 6.894757).toFixed(1)],
+            ]
+              .map(([u, v]) => `<div class="rr"><div class="rlbl">${u}</div><div class="rval">${v}</div></div>`)
+              .join("");
+            return `<div class="rt" style="margin-bottom:10px"><h3>${n.toUpperCase()} @ ${t} °C</h3>${rows}</div>`;
+          })
+          .join("");
       }
 
       function setMsg(id, text, cls) {
@@ -843,41 +939,28 @@
 
       async function fetchAllStations() {
         const auth = `Authorization=${API_KEY}&format=JSON&limit=1000`;
-        // O-A0001: 有人氣象站, O-A0003: 自動氣象站10分鐘綜觀（含溫濕度）
-        const [r1, r2] = await Promise.allSettled([
-          fetch(`${BASE}/O-A0001-001?${auth}`).then((r) => r.json()),
-          fetch(`${BASE}/O-A0003-001?${auth}`).then((r) => r.json()),
-        ]);
-        let stations = [];
-        if (r1.status === "fulfilled")
-          stations = stations.concat(
-            (r1.value?.records?.Station || []).map((x) => ({
-              ...x,
-              _src: "O-A0001",
-            })),
-          );
-        if (r2.status === "fulfilled")
-          stations = stations.concat(
-            (r2.value?.records?.Station || []).map((x) => ({
-              ...x,
-              _src: "O-A0003",
-            })),
-          );
+        // O-A0001-001 已含全部測站（O-A0003 是其子集，不需另抓）
+        const r = await fetch(`${BASE}/O-A0001-001?${auth}`).then((r) => r.json());
+        const stations = r?.records?.Station || [];
         if (stations.length === 0) throw new Error("無法取得測站資料");
         return stations;
       }
 
+      // 氣象署以 -99 表示缺值
+      const num = (v) => {
+        const n = parseFloat(v);
+        return n <= -99 ? NaN : n;
+      };
+
+      // 站號 466xxx / 467xxx 為署屬有人站
+      const isManned = (s) => /^46[67]/.test(s.StationId);
+
       function getObs(s) {
-        // O-A0001 與 O-A0003 的 WeatherElement 都是物件，欄位名稱相同
         const we = s.WeatherElement;
         if (we && !Array.isArray(we)) {
-          return {
-            temp: parseFloat(we.AirTemperature),
-            hum: parseFloat(we.RelativeHumidity),
-            wind: parseFloat(we.WindSpeed),
-          };
+          return { temp: num(we.AirTemperature), hum: num(we.RelativeHumidity) };
         }
-        return { temp: NaN, hum: NaN, wind: NaN };
+        return { temp: NaN, hum: NaN };
       }
 
       function getLatLon(s) {
@@ -905,26 +988,23 @@
       }
 
       function showStation(s, extra) {
-        const { temp, hum, wind } = getObs(s);
+        const { temp, hum } = getObs(s);
         if (isNaN(temp) || isNaN(hum))
           throw new Error(`「${s.StationName}」無溫濕度，請選其他測站`);
         const time = (s.ObsTime?.DateTime || "—")
           .replace("T", " ")
           .substring(0, 16);
         const county = s.GeoInfo?.CountyName || "";
-        const src = s._src === "O-A0001" ? "有人站" : "自動站";
+        const src = isManned(s) ? "有人站" : "自動站";
         document.getElementById("aLoc").textContent =
           `${s.StationName}（${county}）[${src}]${extra ? " · " + extra : ""}`;
         document.getElementById("aTemp").textContent = temp + " °C";
         document.getElementById("aHum").textContent = hum + " %";
-        document.getElementById("aWind").textContent = isNaN(wind)
-          ? "—"
-          : wind + " m/s";
         document.getElementById("aTime").textContent = time;
         document.getElementById("autoPanel").style.display = "";
         document.getElementById("tIn").value = temp;
         document.getElementById("hIn").value = hum;
-        calculate();
+        calculate(false);
       }
 
       // ── GPS ───────────────────────────────────────────────────────
@@ -936,6 +1016,7 @@
         const btn = btnLoad("geoBtn", "定位中…");
         setMsg("fetchMsg", "", "");
         document.getElementById("autoPanel").style.display = "none";
+        document.getElementById("stationSelectWrap").style.display = "none";
 
         navigator.geolocation.getCurrentPosition(
           async ({ coords: { latitude: lat, longitude: lon } }) => {
@@ -982,6 +1063,7 @@
 
       // ── 關鍵字搜尋（共用邏輯）────────────────────────────────────
       async function doSearch(kw) {
+        kw = kw.replace(/台/g, "臺"); // 氣象署地名用「臺」
         const stations = await fetchAllStations();
         const valid = stations.filter((s) => {
           const name = s.StationName || "",
@@ -1028,7 +1110,7 @@
                 .map((s) => {
                   const { temp, hum } = getObs(s),
                     county = s.GeoInfo?.CountyName || "",
-                    src = s._src === "O-A0001" ? "有人" : "自動(O-A0003)";
+                    src = isManned(s) ? "有人" : "自動";
                   return `<option value="${s.StationId}">${s.StationName}（${county}）[${src}] ${temp}°C ${hum}%</option>`;
                 })
                 .join("");
@@ -1061,7 +1143,7 @@
       }
 
       // ── 計算 ───────────────────────────────────────────────────────
-      function calculate() {
+      function calculate(scroll = true) {
         const T = parseFloat(document.getElementById("tIn").value);
         const RH = parseFloat(document.getElementById("hIn").value);
         const ap = parseFloat(document.getElementById("apIn").value) || 3;
@@ -1078,11 +1160,9 @@
 
         const Tw = wetBulb(T, RH),
           target = +(Tw + ap).toFixed(1),
-          normMax = +(Tw + 5).toFixed(1),
-          warnMax = +(Tw + 8).toFixed(1);
-        document.getElementById("rT").textContent = T.toFixed(1) + " °C";
+          normMax = +(Tw + ap + 2).toFixed(1), // 門檻隨設計逼近度移動
+          warnMax = +(Tw + ap + 5).toFixed(1);
         document.getElementById("rTw").textContent = Tw + " °C";
-        document.getElementById("rH").textContent = RH.toFixed(0) + " %";
         document.getElementById("rTarget").textContent = target + " °C";
         document.getElementById("rTargetSub").textContent =
           `濕球${Tw}°C + 逼近度${ap}°C`;
@@ -1135,14 +1215,17 @@
         document.getElementById("sicon").textContent = cfg[level].icon;
         document.getElementById("stitle").textContent = cfg[level].title;
         document.getElementById("sdesc").textContent = cfg[level].desc;
+        lastWater = !isNaN(ao) ? ao : target;
+        if (!rfEdited) autoRef();
         document.getElementById("results").classList.add("show");
-        setTimeout(
-          () =>
-            document
-              .getElementById("results")
-              .scrollIntoView({ behavior: "smooth", block: "start" }),
-          100,
-        );
+        if (scroll === true)
+          setTimeout(
+            () =>
+              document
+                .getElementById("results")
+                .scrollIntoView({ behavior: "smooth", block: "start" }),
+            100,
+          );
       }
 
       function clearAll() {
@@ -1150,6 +1233,10 @@
           (id) => (document.getElementById(id).value = ""),
         );
         document.getElementById("apIn").value = "3";
+        lastWater = NaN;
+        document.getElementById("riseIn").value = "5";
+        document.getElementById("tdIn").value = "3";
+        autoRef();
         document.getElementById("results").classList.remove("show");
         document.getElementById("autoPanel").style.display = "none";
         document.getElementById("stationSelectWrap").style.display = "none";
@@ -1181,6 +1268,206 @@
       window.addEventListener("load", () => {
         fetchByStationId("C0AI40");
       });
+    </script>
+    <script>
+      function showTab(id) {
+        document.getElementById("tabMon").style.display = id === "tabMon" ? "" : "none";
+        document.getElementById("tabGauge").style.display = id === "tabGauge" ? "" : "none";
+        document.getElementById("tabBtnMon").classList.toggle("on", id === "tabMon");
+        document.getElementById("tabBtnGauge").classList.toggle("on", id === "tabGauge");
+      }
+    </script>
+    <script>
+      // 飽和絕對壓力 kPa（CoolProp，露點），-10..70 °C，每 1 °C
+      const TMIN = -10, TMAX = 70;
+      const P = {"R134a": [200.6, 208.6, 216.9, 225.5, 234.3, 243.3, 252.7, 262.3, 272.2, 282.3, 292.8, 303.6, 314.6, 326.0, 337.7, 349.7, 362.0, 374.6, 387.6, 400.9, 414.6, 428.6, 443.0, 457.8, 472.9, 488.4, 504.3, 520.5, 537.2, 554.2, 571.7, 589.6, 607.9, 626.6, 645.8, 665.4, 685.4, 705.9, 726.9, 748.3, 770.2, 792.6, 815.4, 838.8, 862.6, 887.0, 911.8, 937.2, 963.2, 989.6, 1016.6, 1044.1, 1072.2, 1100.9, 1130.1, 1159.9, 1190.3, 1221.3, 1252.9, 1285.1, 1317.9, 1351.3, 1385.4, 1420.1, 1455.5, 1491.5, 1528.2, 1565.6, 1603.6, 1642.3, 1681.8, 1721.9, 1762.8, 1804.4, 1846.7, 1889.8, 1933.7, 1978.3, 2023.7, 2069.8, 2116.8], "R410A": [572.7, 592.7, 613.3, 634.4, 656.1, 678.3, 701.1, 724.5, 748.4, 772.9, 798.1, 823.8, 850.2, 877.2, 904.9, 933.2, 962.1, 991.8, 1022.1, 1053.1, 1084.8, 1117.2, 1150.4, 1184.3, 1218.9, 1254.3, 1290.4, 1327.4, 1365.1, 1403.6, 1442.9, 1483.1, 1524.1, 1565.9, 1608.6, 1652.1, 1696.6, 1741.9, 1788.2, 1835.3, 1883.4, 1932.4, 1982.4, 2033.4, 2085.4, 2138.3, 2192.3, 2247.3, 2303.3, 2360.4, 2418.6, 2477.9, 2538.2, 2599.7, 2662.4, 2726.1, 2791.1, 2857.2, 2924.6, 2993.2, 3063.0, 3134.1, 3206.5, 3280.2, 3355.2, 3431.6, 3509.4, 3588.6, 3669.2, 3751.3, 3834.8, 3919.9, 4006.6, 4094.9, 4184.8, 4276.3, 4369.7, 4464.8, 4561.8, 4660.7, 4761.7]};
+      const CFG = {
+        high: {
+          R410A: { max: 800, major: 100, minor: 20, mpaStep: 1, note: "常用高壓錶 0~800 psi（≈ 0~5.5 MPa）" },
+          R134a: { max: 500, major: 100, minor: 20, mpaStep: 0.5, note: "常用高壓錶 0~500 psi（≈ 0~3.4 MPa）" },
+        },
+        low: {
+          R410A: { max: 250, major: 50, minor: 10, mpaStep: 0.5, note: "常見低壓錶 0~250 psi（≈ 0~1.7 MPa）" },
+          R134a: { max: 120, major: 20, minor: 5, mpaStep: 0.2, note: "常見低壓錶 0~120 psi（≈ 0~0.8 MPa）" },
+        },
+      };
+      const KPA_PSI = 6.894757, KPA_KGF = 98.0665, ATM = 101.325;
+
+      function gaugeKPa(n, t) {
+        const a = P[n], i = Math.min(Math.floor(t - TMIN), a.length - 2), f = t - TMIN - i;
+        return Math.exp(Math.log(a[i]) * (1 - f) + Math.log(a[i + 1]) * f) - ATM;
+      }
+
+      const CX = 160, CY = 160, R = 120, A0 = -135, A1 = 135;
+      const rad = (d) => ((d - 90) * Math.PI) / 180;
+      const pt = (r, a) => [CX + r * Math.cos(rad(a)), CY + r * Math.sin(rad(a))];
+      const f1 = (n) => n.toFixed(1);
+      const arc = (r, a, b) => {
+        const [x1, y1] = pt(r, a), [x2, y2] = pt(r, b);
+        return `M${f1(x1)} ${f1(y1)} A${r} ${r} 0 ${b - a > 180 ? 1 : 0} 1 ${f1(x2)} ${f1(y2)}`;
+      };
+
+      // marks: [[psi, 標籤, 顏色], ...]，前兩個為範圍端點
+      function gauge(n, c, title, lo, hi, marks) {
+        const clamp = (v) => Math.max(0, Math.min(c.max, v));
+        const ang = (psi) => A0 + (clamp(psi) / c.max) * (A1 - A0);
+        let s = `<svg viewBox="-40 0 400 320" role="img" aria-label="${title}">`;
+        s += `<circle cx="${CX}" cy="${CY}" r="150" fill="#0d131b" stroke="#2a3a4c" stroke-width="3"/>`;
+        s += `<path d="${arc(R, A0, A1)}" fill="none" stroke="#2a3a4c" stroke-width="10"/>`;
+        s += `<path d="${arc(R, ang(lo), ang(hi))}" fill="none" stroke="#f0a500" stroke-width="10"/>`;
+        for (let v = 0; v <= c.max; v += c.minor) {
+          const major = v % c.major === 0;
+          const [x1, y1] = pt(R - 8, ang(v)), [x2, y2] = pt(R - (major ? 22 : 15), ang(v));
+          s += `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="#dde8f0" stroke-width="${major ? 2 : 1}"/>`;
+          if (major) {
+            const [tx, ty] = pt(R - 36, ang(v));
+            s += `<text x="${f1(tx)}" y="${f1(ty)}" fill="#dde8f0" font-size="12" text-anchor="middle" dominant-baseline="middle">${v}</text>`;
+          }
+        }
+        const maxMPa = (c.max * KPA_PSI) / 1000;
+        for (let m = 0; m <= maxMPa + 1e-9; m += c.mpaStep) {
+          const [tx, ty] = pt(R - 62, ang((m * 1000) / KPA_PSI));
+          s += `<text x="${f1(tx)}" y="${f1(ty)}" fill="#00c8f0" font-size="11" text-anchor="middle" dominant-baseline="middle">${+m.toFixed(1)}</text>`;
+        }
+        s += `<text x="${CX}" y="${CY + 56}" fill="#8aa4b8" font-size="10" text-anchor="middle">psi (外) / MPa (內)</text>`;
+        s += `<text x="${CX}" y="${CY + 72}" fill="#dde8f0" font-size="14" font-weight="700" text-anchor="middle">${title}</text>`;
+        marks.forEach(([v, lab, col]) => {
+          const a = ang(v), [x2, y2] = pt(R - 4, a), [lx, ly] = pt(R + 42, a);
+          s += `<line x1="${CX}" y1="${CY}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${col}" stroke-width="2.5" stroke-linecap="round"/>`;
+          s += `<text x="${f1(lx)}" y="${f1(ly)}" fill="${col}" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="middle">${lab}</text>`;
+        });
+        return s + `<circle cx="${CX}" cy="${CY}" r="6" fill="#dde8f0"/></svg>`;
+      }
+
+      function row(label, g, edge) {
+        return `<tr class="${edge ? "edge" : ""}"><td>${label}</td><td>${g.toFixed(0)}</td><td>${(g / 1000).toFixed(3)}</td><td>${(g / 100).toFixed(2)}</td><td>${(g / KPA_KGF).toFixed(2)}</td><td>${(g / KPA_PSI).toFixed(1)}</td></tr>`;
+      }
+
+      const val = (id) => parseFloat(document.getElementById(id).value);
+      const HEAD = (first) => `<tr><th>${first}</th><th>kPa</th><th>MPa</th><th>bar</th><th>kgf/cm²</th><th>psig</th></tr>`;
+
+      // items: [{t: 飽和溫度, label, tag}]，第一筆與最後一筆為範圍端點；title 為錶盤標題尾字
+      function section(kind, items, errId, gridId) {
+        const err = document.getElementById(errId), grid = document.getElementById(gridId);
+        err.textContent = "";
+        grid.innerHTML = ""; // 有錯誤時不留舊圖
+        if (items.some((i) => isNaN(i.t))) {
+          err.textContent = "⚠ 請輸入有效數字";
+          return;
+        }
+        if (items[0].t > items.at(-1).t) {
+          err.textContent = "⚠ 下限不可大於上限";
+          return;
+        }
+        if (items.some((i) => i.t < TMIN || i.t > TMAX)) {
+          err.textContent = `⚠ 飽和溫度需介於 ${TMIN}~${TMAX} °C`;
+          return;
+        }
+        const last = items.length - 1;
+        grid.innerHTML = ["R410A", "R134a"]
+          .map((n) => {
+            const c = CFG[kind][n], psi = (t) => gaugeKPa(n, t) / KPA_PSI;
+            const rows = items.map((i, k) => row(i.label, gaugeKPa(n, i.t), k === 0 || k === last)).join("");
+            const marks = last === 0
+              ? [[psi(items[0].t), items[0].tag, "#00c8f0"]]
+              : [[psi(items[0].t), items[0].tag, "#00e890"], [psi(items[last].t), items[last].tag, "#f04040"]];
+            const title = `${n.toUpperCase()} ${kind === "high" ? "高壓" : "低壓"}`;
+            return `<div class="card"><h3>${title}</h3><div class="rng">${c.note}</div>${gauge(n, c, title, psi(items[0].t), psi(items[last].t), marks)}
+              <table>${HEAD(kind === "high" ? "外氣 → 冷凝溫度" : "冰水出水溫（蒸發溫度）")}${rows}</table></div>`;
+          })
+          .join("");
+      }
+
+      let hMode = "range", live = null;
+
+      async function loadLive() {
+        const info = document.getElementById("hLiveInfo");
+        info.textContent = "載入石牌現在天氣…";
+        try {
+          const s = (await fetchAllStations()).find((x) => x.StationId === "C0AI40");
+          if (!s) throw new Error("找不到石牌測站");
+          const { temp, hum } = getObs(s);
+          if (isNaN(temp) || isNaN(hum)) throw new Error("石牌目前無溫濕度資料");
+          live = { temp, hum, time: (s.ObsTime?.DateTime || "").replace("T", " ").substring(0, 16) };
+          info.textContent = `石牌 ${temp} °C / ${hum}%　觀測時間 ${live.time}`;
+        } catch (e) {
+          live = null;
+          info.textContent = "⚠ " + e.message;
+        }
+      }
+
+      async function setMode(m, reset) {
+        hMode = m;
+        if (m === "range" && reset) {
+          // 點「臺北範圍」按鈕：還原預設的 14~35 °C 與濕度
+          [["hLo", 14], ["hHi", 35], ["hLoRH", 77], ["hHiRH", 71]].forEach(([id, v]) => (document.getElementById(id).value = v));
+          syncSliders();
+        }
+        document.getElementById("hRange").style.display = document.getElementById("hSlide").style.display = m === "range" ? "" : "none";
+        document.getElementById("hLive").style.display = m === "live" ? "" : "none";
+        document.getElementById("btnRange").classList.toggle("on", m === "range");
+        document.getElementById("btnLive").classList.toggle("on", m === "live");
+        if (m === "live") await loadLive();
+        renderHigh();
+      }
+
+      function renderHigh() {
+        const err = document.getElementById("hErr");
+        const add = val("hAp") + val("hRise") + val("hTd");
+        const bad = (msg) => {
+          err.textContent = msg;
+          document.getElementById("hGrid").innerHTML = "";
+        };
+        // 外氣 (T, RH) → 冷凝溫度；Stull 公式上限 RH 99%
+        const mk = (T, RH) => {
+          const tw = wetBulb(T, Math.min(RH, 99)), tc = tw + add;
+          return { t: +tc.toFixed(1), label: `${T} °C / ${RH}% → 濕球 ${tw.toFixed(1)} → ${tc.toFixed(1)}`, tag: `冷凝 ${tc.toFixed(1)}°C` };
+        };
+        err.textContent = "";
+        if (isNaN(add)) return bad("⚠ 請輸入有效數字");
+        let items;
+        if (hMode === "live") {
+          if (!live) return bad("⚠ 無法取得石牌現在天氣，請稍後再試");
+          items = [mk(live.temp, live.hum)];
+        } else {
+          const lo = val("hLo"), hi = val("hHi"), rhLo = val("hLoRH"), rhHi = val("hHiRH");
+          if ([lo, hi, rhLo, rhHi].some(isNaN) || [rhLo, rhHi].some((r) => r < 5 || r > 99))
+            return bad("⚠ 請輸入有效數字，相對濕度需介於 5~99 %");
+          items = [mk(lo, rhLo), mk(+((lo + hi) / 2).toFixed(1), Math.round((rhLo + rhHi) / 2)), mk(hi, rhHi)];
+          items.sort((a, b) => a.t - b.t); // 兩端濕度不同時，冷凝溫度順序可能與外氣相反
+        }
+        section("high", items, "hErr", "hGrid");
+      }
+
+      function renderLow() {
+        const lo = val("lLo"), hi = val("lHi"), ap = val("lAp");
+        const mk = (w) => ({ t: w - ap, label: `${w} °C（蒸發 ${+(w - ap).toFixed(1)}）`, tag: `蒸發 ${+(w - ap).toFixed(1)}°C` });
+        section("low", [mk(lo), mk(+((lo + hi) / 2).toFixed(1)), mk(hi)], "lErr", "lGrid");
+      }
+      ["hLo", "hHi", "hLoRH", "hHiRH", "hAp", "hRise", "hTd"].forEach((id) => document.getElementById(id).addEventListener("input", renderHigh));
+      ["lLo", "lHi", "lAp"].forEach((id) => document.getElementById(id).addEventListener("input", renderLow));
+      // 滑桿 ⇄ 數字欄；下限不超過上限
+      const $s = (id) => document.getElementById(id);
+      function syncSliders() {
+        ["Lo", "Hi"].forEach((k) => {
+          $s("h" + k + "S").value = $s("h" + k).value;
+          $s("h" + k + "V").textContent = $s("h" + k).value;
+        });
+      }
+      ["Lo", "Hi"].forEach((k) => {
+        $s("h" + k + "S").addEventListener("input", () => {
+          const v = $s("h" + k + "S").value;
+          $s("h" + k).value = v;
+          // 兩端碰撞時，推動另一端
+          if (k === "Lo" && +v > +$s("hHi").value) $s("hHi").value = v;
+          if (k === "Hi" && +v < +$s("hLo").value) $s("hLo").value = v;
+          syncSliders();
+          renderHigh();
+        });
+        $s("h" + k).addEventListener("input", syncSliders);
+      });
+      renderHigh();
+      renderLow();
     </script>
   </body>
 </html>
